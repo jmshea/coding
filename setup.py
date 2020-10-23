@@ -11,6 +11,7 @@ setuptools.setup(
     description="Opinionated module for working with binary Galois extension fields",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    keywords="finite fields binary extension galois minimal polynomials conjugates arithmetic",
     url="https://github.com/jmshea/coding/tree/main/binext",
     packages=['binext'],
     install_requires=[
