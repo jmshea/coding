@@ -1,0 +1,273 @@
+#!/usr/bin/env python
+# coding: utf-8
+'''
+John M. Shea
+10/22/20
+v 0.5
+
+Opinionated Python module to implement Galois field arithmetic for binary extension fields GF(2^m)
+
+Offers two classes:
+
+ff: Represents a full finite field 
+   
+    Initializer takes a field specifier, which can be either:
+	field size (integer, power of 2)
+	primitive polynomial, given as list of exponents with nonzero coefficient
+
+    Primary purpose is to set up arithmetic tables for the ffelt class described below
+
+    Offers 1 method:
+
+    print_minpoly_table():
+	prints out the minimum polynomials associated with this field, along with the 
+        minimum power of alpha that is a root of the minimum polynomial. Produces a
+        table of the same form as in Lin and Costello Appendix B
+
+ffelt: Represents an element in a finite field
+
+    Initializer takes two arguments, a power of the primitive element and a field specifier (see ff above)
+    Elements are entered and returned as powers of the primitive element.
+
+    Offers methods for adding, multiplying, and raising elements to powers
+
+    Also offers:
+
+    vec(): return the vector representation of an element
+    conjugates(): returns a list of conjugates for the element
+    minpoly(): returns the minimum polynomial (in GF[2]) for the element
+   
+'''
+import numpy as np
+
+class ff:
+    '''
+    John M. Shea
+    10/22/20
+    
+    Generate lookup tables for operations in a binary extension field
+    
+    Must pass it a specifier for the field, which may be either:
+    - the order of the field (uses a default primitive polynomial)
+    - a primitive polynomial for the field
+    '''    
+    
+    primpolys={4:[0,1,2],      # x^2+x+1
+               8:[0,1,3],      # x^3+x+1
+               16:[0,1,4],     # x^4+x+1
+               32:[0,2,5],     # x^5+x^2+1
+               64:[0,1,6],     # x^6+x+1 
+               128:[0,3,7],    # x^7+x^3+1
+               256:[0,2,3,4,8] # x^8+x^4+x^3+x^2+1
+              } # To do: add more primitive polys  (from App. B of Lin and Costello)
+    
+
+    
+    def __init__(self, gspec, debug=False):
+        
+        if type(gspec)==int:
+            if gspec in self.primpolys.keys():
+                glist=self.primpolys[gspec]
+            else:
+                raise "No default primitive polynomial for field order " +str(gspec)
+        elif type(gspec)==list:
+            glist=gspec
+        else:
+            raise "Must specify g as either field order or list of nonzero primitive poly coeffs"
+            
+        # Now convert g in list form to an integer
+        self.g=0
+        #print(glist)
+        for i in glist:
+            self.g+=2**i
+            #print(i,g)
+        self.m=int(np.log2(self.g))
+        self.q=2**self.m
+        self.fmt="{0:0"+str(self.m)+"b}"
+        if debug:
+            print(self.m,self.q)
+        
+        # Now find the vector representations and store in forward and reverse dicts
+        gp=self.g%self.q
+        a=1
+        self.power_to_poly={-1:0}
+        self.poly_to_power={0:-1}
+        for n in range(self.q-1):
+            self.power_to_poly[n]=a
+            self.poly_to_power[a]=n
+            if debug:
+                print("{0:3} {1:3}  ".format(n,a), self.fmt.format(a))
+            a=a<<1
+            #print(a)
+
+            if a&self.q>0:
+                a=(a&(self.q-1)) ^ gp
+                
+    def print_minpoly_table(self):
+        a=ffelt(1, self.q)
+        seen=[]
+        sumdeg=0
+        printed=0
+        for i in range(1, self.q-2,2):
+            mp=(a**i).minpoly(True)
+            if mp not in seen:
+                if printed%2==0:
+                    print("{0:3}: {1:30}".format(i, str(mp)),end="")
+                else:
+                    print("{0:3}: {1:30}".format(i, str(mp)))
+                seen+=[mp]
+                printed+=1
+                sumdeg+=(len(mp)-1)
+                if sumdeg>=self.q-2:
+                    break
+
+
+
+
+'''Helper function needed by ffelt class'''
+def bin_array(num, m):
+    """Convert a positive integer num into an m-bit bit vector"""
+    return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
+
+
+
+class ffelt:
+    '''
+    John M. Shea
+    10/22/20
+    
+    You must either pass it a ff field OR a specifier of the field,
+    which can either be the order of the field (to use the default poly)
+    or a list of the nonzero coefficients of the primitive polynomial of the field
+    '''
+
+    def __init__(self, elt, f, debug=False):
+        #print(f, type(f), type(f)==ff)
+
+
+            
+        if type(f)==ff:
+            self.f=f
+        else:
+            self.f=ff(f)
+            
+        self.q=self.f.q
+        self.elt=elt
+        self.debug=debug
+        
+    def __add__(self, a):
+
+        if type(a)==int:
+            result=self.f.power_to_poly[self.elt]^self.f.power_to_poly[a]
+                    
+            if self.debug:
+                print(self.f.fmt.format(self.f.power_to_poly[self.elt]))        
+                print(self.f.fmt.format(self.f.power_to_poly[a]))
+                print(self.f.fmt.format(result))
+                print(self.f.poly_to_power[result])
+        elif type(a)==ffelt:
+            if a.q==self.q:
+                result=self.f.power_to_poly[self.elt]^a.f.power_to_poly[a.elt]
+                if self.debug:
+                    print(self.f.fmt.format(self.f.power_to_poly[self.elt]))        
+                    print(self.f.fmt.format(self.f.power_to_poly[a.elt]))
+                    print(self.f.fmt.format(result))
+                    print(self.f.poly_to_power[result])
+
+            else:
+                print("element field size:", self.q)
+                print("argument field size:", a.q)
+                raise "Cannot add elements from different field sizes"
+        else:
+            raise "Cannot add ffelt with element of type " + type(a)
+
+            
+        return ffelt(self.f.poly_to_power[result], self.q)
+    
+    def __mul__(self,a):
+        if type(a)==int:
+            result = (self.elt+a) % (self.q-1)
+        elif type(a)==ffelt:
+            if a.q==self.q:
+                result = (self.elt+a.elt) & (self.q-1)
+            else:
+                raise "Cannot multiply elements from different field sizes"
+        else:
+            raise "Cannot multipy ffelt with element of type " + type(a)
+        
+        return ffelt(result, self.q)
+    
+    def __pow__ (self, a):
+        
+        if type(a)==int:
+            result = (self.elt*a) % (self.q-1)
+        else:
+            raise "power must be an integer"
+        
+        return ffelt(result, self.q)
+    
+    def vec(self):
+        
+        return bin_array(self.f.power_to_poly[self.elt],self.f.m).tolist()
+
+    def conjugates(self):
+        result=[]
+        conj=self.elt
+        while True:
+            result+=[ffelt(conj,self.f)]
+            conj=(conj+conj)%(self.q-1)
+            if conj==self.elt:
+                break
+        return result
+
+    def __repr__ (self):
+        return (str(self.elt)+" GF("+str(self.q)+")")
+        
+    def __eq__ (self, a):
+        if type(a)==int:
+            return self.elt==a
+        elif type(a)==ffelt:
+            if a.q==self.q:
+                return a.elt==self.elt
+            else:
+                raise "Cannot add elements from different field sizes"
+                
+    def minpoly(self, coeffs=False):
+        ''' 
+        Find the minimum polynomial (in the base field) that has the element as a root
+        
+        If coeffs=False (default) returns a vector of polynomial coefficients
+        
+        If coeffs=True, returns the positions of the nonzero coefficients 
+        (as in App. B of Lin and Costello)
+        '''
+        
+        if self.elt > 0:
+            num_conjugates=len(self.conjugates())
+            for i in range(2**(num_conjugates-1)):
+                middle=bin_array(i,num_conjugates-1)
+                candidate=np.hstack(([1],middle,[1]))
+                #print(candidate)
+
+                result=ffelt(-1,self.f)
+                for power, coeff in enumerate(candidate):
+                    if coeff>0:
+                        result= result + self**(len(candidate)-power-1)
+                        #print(power, result)
+
+
+                #print()
+                if result==-1:
+                    candidate= candidate.tolist()
+                    break
+        elif self.elt==0:
+            candidate=[1,1]
+        elif self.elt==-1:
+            candidate=[1,0]
+        else:
+            raise "Something when wrong, self.elt="+str(self.elt)
+            
+        if  coeffs:
+            return np.where(np.flip(candidate)>0)[0].tolist()
+        else:
+            return candidate
