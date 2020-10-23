@@ -3,7 +3,7 @@
 '''
 John M. Shea
 10/22/20
-v 0.5
+v 0.6
 
 Opinionated Python module to implement Galois field arithmetic for binary extension fields GF(2^m)
 
@@ -135,17 +135,23 @@ class ffelt:
     '''
     John M. Shea
     10/22/20
-    
-    You must either pass it a ff field OR a specifier of the field,
+
+    arguments:
+    elt: a power of alpha (optional, will default to 1 if not given)
+    f: a field specifier (required). See below for details.
+
+    You must either pass it a ff object OR a specifier of the field,
     which can either be the order of the field (to use the default poly)
     or a list of the nonzero coefficients of the primitive polynomial of the field
     '''
 
-    def __init__(self, elt, f, debug=False):
+    def __init__(self, elt, f=-1, debug=False):
         #print(f, type(f), type(f)==ff)
 
+        if f==-1:
+            f=elt
+            elt=1
 
-            
         if type(f)==ff:
             self.f=f
         else:
@@ -221,7 +227,14 @@ class ffelt:
         return result
 
     def __repr__ (self):
-        return (str(self.elt)+" GF("+str(self.q)+")")
+        if self.elt>0:
+            return ("a^"+str(self.elt)+" GF("+str(self.q)+")")
+        elif self.elt==0:
+            return ("1"+" GF("+str(self.q)+")")
+        elif self.elt==-1:
+            return ("0"+" GF("+str(self.q)+")")
+        else:
+            raise "Something went wrong in __repr__, self.elt="+str(self.elt)
         
     def __eq__ (self, a):
         if type(a)==int:
