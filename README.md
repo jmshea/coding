@@ -1,7 +1,7 @@
 # coding
 Error-control coding related code
 
-binext.py is a Python module for operating on binary extension fields, GF(2^m)
+**binext.py**: a Python module for operating on binary extension fields, GF(2^m)
 
 Provides classes for creating and operating in finite fields:
 
