@@ -156,11 +156,17 @@ class ffelt:
             self.f=f
         else:
             self.f=ff(f)
-            
+
         self.q=self.f.q
-        self.elt=elt
+        if elt == None:
+            self.elt = None
+        elif type(elt) == int:
+            self.elt=elt % (self.q-1)
+        else:
+            raise "elt must be int or None, not "+str(type(elt))
+
         self.debug=debug
-        
+
     def __add__(self, a):
 
         if a==None: 
