@@ -108,7 +108,7 @@ class ff:
         seen=[]
         sumdeg=0
         printed=0
-        for i in range(1, self.q-2,2):
+        for i in range(0, self.q-2,2):
             mp=(a**i).minpoly(True)
             if mp not in seen:
                 if printed%2==0:
@@ -191,7 +191,7 @@ class ffelt:
             raise "Cannot add ffelt with element of type " + type(a)
 
             
-        return ffelt(self.f.poly_to_power[result], self.q)
+        return ffelt(self.f.poly_to_power[result], self.q, debug=self.debug)
     
     def __mul__(self,a):
         if a==None or self.elt==None:
@@ -206,7 +206,7 @@ class ffelt:
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
         
-        return ffelt(result, self.q)
+        return ffelt(result, self.q, debug=self.debug)
     
     def __pow__ (self, a):
         
@@ -217,7 +217,7 @@ class ffelt:
         else:
             raise "power must be an integer"
         
-        return ffelt(result, self.q)
+        return ffelt(result, self.q, debug=self.debug)
     
     def vec(self):
         
@@ -234,18 +234,21 @@ class ffelt:
         return result
 
     def __repr__ (self):
+        #print("__repr__", self.elt)
 
         if self.elt==None:
+            return ("0"+" GF("+str(self.q)+")")
+        elif self.elt==0:
             return ("1"+" GF("+str(self.q)+")")
         elif self.elt>0:
             return ("a^"+str(self.elt)+" GF("+str(self.q)+")")
-        elif self.elt==-1:
-            return ("0"+" GF("+str(self.q)+")")
         else:
             raise "Something went wrong in __repr__, self.elt="+str(self.elt)
         
     def __eq__ (self, a):
-        if type(a)==int:
+        if a==None:
+            return self.elt==None
+        elif type(a)==int:
             return self.elt==a
         elif type(a)==ffelt:
             if a.q==self.q:
@@ -270,7 +273,7 @@ class ffelt:
                 candidate=np.hstack(([1],middle,[1]))
                 #print(candidate)
 
-                result=ffelt(-1,self.f)
+                result=ffelt(None, self.f)
                 for power, coeff in enumerate(candidate):
                     if coeff>0:
                         result= result + self**(len(candidate)-power-1)
@@ -278,12 +281,13 @@ class ffelt:
 
 
                 #print()
-                if result==-1:
+                #print(result.elt)
+                if result==None:
                     candidate= candidate.tolist()
                     break
         elif self.elt==0:
             candidate=[1,1]
-        elif self.elt==-1:
+        elif self.elt==None:
             candidate=[1,0]
         else:
             raise "Something when wrong, self.elt="+str(self.elt)
