@@ -90,8 +90,8 @@ class ff:
         # Now find the vector representations and store in forward and reverse dicts
         gp=self.g%self.q
         a=1
-        self.power_to_poly={-1:0}
-        self.poly_to_power={0:-1}
+        self.power_to_poly={None:0}
+        self.poly_to_power={0:None}
         for n in range(self.q-1):
             self.power_to_poly[n]=a
             self.poly_to_power[a]=n
@@ -163,6 +163,9 @@ class ffelt:
         
     def __add__(self, a):
 
+        if a==None: 
+            result=self.elt
+
         if type(a)==int:
             result=self.f.power_to_poly[self.elt]^self.f.power_to_poly[a]
                     
@@ -191,7 +194,9 @@ class ffelt:
         return ffelt(self.f.poly_to_power[result], self.q)
     
     def __mul__(self,a):
-        if type(a)==int:
+        if a==None or self.elt==None:
+            result=None
+        elif type(a)==int:
             result = (self.elt+a) % (self.q-1)
         elif type(a)==ffelt:
             if a.q==self.q:
@@ -205,7 +210,9 @@ class ffelt:
     
     def __pow__ (self, a):
         
-        if type(a)==int:
+        if self.elt==None: 
+            result=None
+        elif type(a)==int:
             result = (self.elt*a) % (self.q-1)
         else:
             raise "power must be an integer"
@@ -227,10 +234,11 @@ class ffelt:
         return result
 
     def __repr__ (self):
-        if self.elt>0:
-            return ("a^"+str(self.elt)+" GF("+str(self.q)+")")
-        elif self.elt==0:
+
+        if self.elt==None:
             return ("1"+" GF("+str(self.q)+")")
+        elif self.elt>0:
+            return ("a^"+str(self.elt)+" GF("+str(self.q)+")")
         elif self.elt==-1:
             return ("0"+" GF("+str(self.q)+")")
         else:
