@@ -200,7 +200,7 @@ class ffelt:
             result = (self.elt+a) % (self.q-1)
         elif type(a)==ffelt:
             if a.q==self.q:
-                result = (self.elt+a.elt) & (self.q-1)
+                result = (self.elt+a.elt) % (self.q-1)
             else:
                 raise "Cannot multiply elements from different field sizes"
         else:
