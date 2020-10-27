@@ -196,9 +196,11 @@ class ffelt:
         else:
             raise "Cannot add ffelt with element of type " + type(a)
 
-            
         return ffelt(self.f.poly_to_power[result], self.q, debug=self.debug)
-    
+
+    def __sub__(self,a):
+        return self.__add__(a)
+
     def __mul__(self,a):
         if a==None or self.elt==None:
             result=None
@@ -211,11 +213,28 @@ class ffelt:
                 raise "Cannot multiply elements from different field sizes"
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
-        
+
         return ffelt(result, self.q, debug=self.debug)
-    
+
+    def __truediv__(self,a):
+        if a==None:
+            raise "Division by zero not defined"
+        elif self.elt==None:
+            result=None
+        elif type(a)==int:
+            result = (self.elt-a) % (self.q-1)
+        elif type(a)==ffelt:
+            if a.q==self.q:
+                result = (self.elt-a.elt) % (self.q-1)
+            else:
+                raise "Cannot multiply elements from different field sizes"
+        else:
+            raise "Cannot multipy ffelt with element of type " + type(a)
+
+        return ffelt(result, self.q, debug=self.debug)
+
     def __pow__ (self, a):
-        
+
         if self.elt==None: 
             result=None
         elif type(a)==int:
