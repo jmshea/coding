@@ -172,8 +172,8 @@ class ffelt:
         if a==None: 
             result=self.elt
 
-        if type(a)==int:
-            result=self.f.power_to_poly[self.elt]^self.f.power_to_poly[a]
+        if a==1:
+            result=self.f.power_to_poly[self.elt]^self.f.power_to_poly[0]
                     
             if self.debug:
                 print(self.f.fmt.format(self.f.power_to_poly[self.elt]))        
@@ -204,8 +204,10 @@ class ffelt:
     def __mul__(self,a):
         if a==None or self.elt==None:
             result=None
-        elif type(a)==int:
-            result = (self.elt+a) % (self.q-1)
+        elif a==0:
+            result = None
+        elif a==1:
+            result = self.elt
         elif type(a)==ffelt:
             if a.q==self.q:
                 result = (self.elt+a.elt) % (self.q-1)
@@ -271,10 +273,10 @@ class ffelt:
             raise "Something went wrong in __repr__, self.elt="+str(self.elt)
         
     def __eq__ (self, a):
-        if a==None:
+        if a==0:
             return self.elt==None
-        elif type(a)==int:
-            return self.elt==a
+        elif a==1:
+            return self.elt==0
         elif type(a)==ffelt:
             if a.q==self.q:
                 return a.elt==self.elt

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="binext",
-    version="0.8",
+    version="0.87",
     author="John M. Shea",
     author_email="jshea@ece.ufl.edu",
     description="Opinionated module for working with binary Galois extension fields",
