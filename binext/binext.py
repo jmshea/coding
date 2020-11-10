@@ -108,8 +108,11 @@ class ff:
         seen=[]
         sumdeg=0
         printed=0
-        for i in range(0, self.q-2,2):
+        #print("{0:3}: {1:30}".format(0, str((a**0).minpoly())),end="")
+        #printed=1
+        for i in range(1, self.q-2,2):
             mp=(a**i).minpoly(True)
+            #print((a**i), mp)
             if mp not in seen:
                 if printed%2==0:
                     print("{0:3}: {1:30}".format(i, str(mp)),end="")
@@ -283,33 +286,39 @@ class ffelt:
             else:
                 raise "Cannot add elements from different field sizes"
                 
-    def minpoly(self, coeffs=False):
+    def minpoly(self, coeffs=False, debug=False):
         ''' 
         Find the minimum polynomial (in the base field) that has the element as a root
-        
+
         If coeffs=False (default) returns a vector of polynomial coefficients
-        
+
         If coeffs=True, returns the positions of the nonzero coefficients 
         (as in App. B of Lin and Costello)
         '''
-        
+
         if self.elt > 0:
             num_conjugates=len(self.conjugates())
+            if debug:
+                print("Num conjugates=", num_conjugates)
             for i in range(2**(num_conjugates-1)):
                 middle=bin_array(i,num_conjugates-1)
                 candidate=np.hstack(([1],middle,[1]))
-                #print(candidate)
+                if debug:
+                    print(candidate)
 
                 result=ffelt(None, self.f)
                 for power, coeff in enumerate(candidate):
                     if coeff>0:
                         result= result + self**(len(candidate)-power-1)
-                        #print(power, result)
+                        if debug:
+                            print(power, result)
 
 
-                #print()
-                #print(result.elt)
-                if result==None:
+                if debug:
+                    print()
+                    print(result)
+                    print("---")
+                if result==0:
                     candidate= candidate.tolist()
                     break
         elif self.elt==0:
