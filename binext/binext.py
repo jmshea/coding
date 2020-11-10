@@ -104,7 +104,7 @@ class ff:
                 a=(a&(self.q-1)) ^ gp
                 
     def print_minpoly_table(self):
-        a=ffelt(1, self.q)
+        a=ffelt(1, self)
         seen=[]
         sumdeg=0
         printed=0
@@ -199,7 +199,7 @@ class ffelt:
         else:
             raise "Cannot add ffelt with element of type " + type(a)
 
-        return ffelt(self.f.poly_to_power[result], self.q, debug=self.debug)
+        return ffelt(self.f.poly_to_power[result], self.f, debug=self.debug)
 
     def __sub__(self,a):
         return self.__add__(a)
@@ -219,7 +219,7 @@ class ffelt:
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
 
-        return ffelt(result, self.q, debug=self.debug)
+        return ffelt(result, self.f, debug=self.debug)
 
     def __truediv__(self,a):
         if a==None:
@@ -236,7 +236,7 @@ class ffelt:
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
 
-        return ffelt(result, self.q, debug=self.debug)
+        return ffelt(result, self.f, debug=self.debug)
 
     def __pow__ (self, a):
 
@@ -247,7 +247,7 @@ class ffelt:
         else:
             raise "power must be an integer"
         
-        return ffelt(result, self.q, debug=self.debug)
+        return ffelt(result, self.f, debug=self.debug)
     
     def vec(self):
         
