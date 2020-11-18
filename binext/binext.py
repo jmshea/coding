@@ -39,6 +39,8 @@ ffelt: Represents an element in a finite field
    
 '''
 import numpy as np
+import copy
+import pandas
 
 class ff:
     '''
@@ -124,6 +126,44 @@ class ff:
                 if sumdeg>=self.q-2:
                     break
 
+    def add_table(self):
+        num_additions = np.square(self.q-1)
+
+        # generate basic element of the field
+        a = ffelt(1, self, suppressField=True)
+
+        # generate all unique elements
+        elements = []
+        for i in range(self.q-1):
+            elements.append(a**i)
+
+        #print(elements)
+
+        # Now build the 2D array of additions:
+
+        sum_array = np.zeros((self.q-1, self.q-1))
+
+        sum_list = []
+        for i, a_i in enumerate(elements):
+            inner_list = []
+            for j, a_j in enumerate(elements):
+
+                #sum_array[i,j] = a_i + a_j
+                inner_list.append(a_i + a_j)
+
+            sum_list.append(inner_list)
+
+        element_strs = []
+        for e in elements:
+            element_strs.append(str(e))
+
+        GF_addition_table = pandas.DataFrame(sum_list, index=element_strs, 
+                                            columns=element_strs)
+    
+        #print(GF_addition_table)
+
+        return GF_addition_table
+    
 
 
 
@@ -148,7 +188,7 @@ class ffelt:
     or a list of the nonzero coefficients of the primitive polynomial of the field
     '''
 
-    def __init__(self, elt, f=-1, debug=False):
+    def __init__(self, elt, f=-1, debug=False, suppressField=False):
         #print(f, type(f), type(f)==ff)
 
         if f==-1:
@@ -169,6 +209,7 @@ class ffelt:
             raise "elt must be int or None, not "+str(type(elt))
 
         self.debug=debug
+        self.suppressField=suppressField
 
     def __add__(self, a):
 
@@ -199,7 +240,10 @@ class ffelt:
         else:
             raise "Cannot add ffelt with element of type " + type(a)
 
-        return ffelt(self.f.poly_to_power[result], self.f, debug=self.debug)
+        #return ffelt(self.f.poly_to_power[result], self.f, debug=self.debug)
+        ff_result=copy.deepcopy(self)
+        ff_result.elt=self.f.poly_to_power[result]
+        return ff_result
 
     def __sub__(self,a):
         return self.__add__(a)
@@ -219,7 +263,10 @@ class ffelt:
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
 
-        return ffelt(result, self.f, debug=self.debug)
+        #return ffelt(result, self.f, debug=self.debug)
+        ff_result=copy.deepcopy(self)
+        ff_result.elt=result
+        return ff_result
 
     def __truediv__(self,a):
         if a==None:
@@ -236,7 +283,10 @@ class ffelt:
         else:
             raise "Cannot multipy ffelt with element of type " + type(a)
 
-        return ffelt(result, self.f, debug=self.debug)
+        #return ffelt(result, self.f, debug=self.debug)
+        ff_result=copy.deepcopy(self)
+        ff_result.elt=result
+        return ff_result
 
     def __pow__ (self, a):
 
@@ -246,8 +296,12 @@ class ffelt:
             result = (self.elt*a) % (self.q-1)
         else:
             raise "power must be an integer"
-        
-        return ffelt(result, self.f, debug=self.debug)
+
+        # Old way
+        # return ffelt(result, self.f, debug=self.debug)
+        ff_result=copy.deepcopy(self)
+        ff_result.elt=result
+        return ff_result
     
     def vec(self):
         
@@ -266,12 +320,18 @@ class ffelt:
     def __repr__ (self):
         #print("__repr__", self.elt)
 
+        fieldString=""
+        if not self.suppressField:
+            fieldString=" GF("+str(self.q)+")"
+
+
+
         if self.elt==None:
-            return ("0"+" GF("+str(self.q)+")")
+            return ("0"+fieldString)
         elif self.elt==0:
-            return ("1"+" GF("+str(self.q)+")")
+            return ("1"+fieldString)
         elif self.elt>0:
-            return ("a^"+str(self.elt)+" GF("+str(self.q)+")")
+            return ("a^"+str(self.elt)+fieldString)
         else:
             raise "Something went wrong in __repr__, self.elt="+str(self.elt)
         

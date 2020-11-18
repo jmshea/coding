@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="binext",
-    version="0.92",
+    version="0.94",
     author="John M. Shea",
     author_email="jshea@ece.ufl.edu",
     description="Opinionated module for working with binary Galois extension fields",
@@ -15,7 +15,8 @@ setuptools.setup(
     url="https://github.com/jmshea/coding/tree/main/binext",
     packages=['binext'],
     install_requires=[
-          'numpy',
+        'numpy',
+        'pandas'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
