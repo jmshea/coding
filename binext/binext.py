@@ -165,7 +165,45 @@ class ff:
         return GF_addition_table
     
 
+    def mul_table(self):
+        num_additions = np.square(self.q-1)
 
+        # generate basic element of the field
+        a = ffelt(1,self,suppressField=True)
+
+        # generate all unique elements
+        elements = []
+        for i in range(self.q-1):
+            elements.append(a**i)
+
+        #print(elements)
+
+        # Now build the 2D array of products:
+
+        prod_array = np.zeros((self.q-1, self.q-1))
+
+        prod_list = []
+
+        for i, a_i in enumerate(elements):
+            inner_list = []
+            for j, a_j in enumerate(elements):
+                inner_list.append(a_i * a_j)
+
+            prod_list.append(inner_list)
+
+
+        # Now make the pretty table using pandas:
+        # make string column/row labels
+        element_strs = []
+        for e in elements:
+            element_strs.append(str(e))
+
+        GF_product_table = pandas.DataFrame(prod_list, index=element_strs, 
+                                            columns=element_strs)
+
+        #print(GF_addition_table)
+
+        return GF_product_table  
 
 '''Helper function needed by ffelt class'''
 def bin_array(num, m):
